@@ -1,1 +1,1 @@
-if x < 100 then x := x + 2 fi; write x
+if x < 100 then x := x + 2 fi; write x  
