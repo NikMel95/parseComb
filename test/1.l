@@ -1,1 +1,1 @@
-if x < 100 then write 0 fi 
+if x < 100 then write 0 fi  
