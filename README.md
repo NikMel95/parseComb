@@ -9,6 +9,10 @@
 <br>5)node index.js \<path test file> \<arg pretty> или node index.js test/1.l -p
 <br><br>
 ***
+Pretty-Printer
+<br>
+1)node is2.js \<path test(tree)> или node is2.js i.l
+***
 PS:
 Версия nodejs (node -v) > 6.9
 <br>
