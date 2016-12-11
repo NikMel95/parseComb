@@ -1,1 +1,1 @@
-if x < 100 then x := x + 2 fi; write x  
+read x; x := (2 + (x + 2)) + (2 + (x * 6))
