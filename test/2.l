@@ -1,0 +1,1 @@
+read x; while x < 100 do x := x + 1 od
