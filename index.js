@@ -355,7 +355,7 @@ if(process.argv[3] == "-p"){
   getCode(code);
   Pretty_Printer(arr_pp);
   console.log("\nPretty Printer:\n");
-  console.log(res);
+  console.log(res); 
 }
 
 
