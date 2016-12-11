@@ -4,7 +4,8 @@
 ---
 1) Устнаовить nodejs:sudo apt-get install nodejs
 <br>2) Устнаовить менеджер пакетов:sudo apt-get install npm
-<br>3)node index.js \<path test file> или node index.js test/1.l
+<br>3) Выпонить npm install  в папке проекта
+<br>4)node index.js \<path test file> или node index.js test/1.l
 <br><br>
 ***
 PS:
