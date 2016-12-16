@@ -220,23 +220,27 @@ s = s.replace(/'/g,"\"")
 let code = JSON.parse(s);
 var res = "";
 var arr_pp = [];
+
 function getCode(json_arr) {
   
   for(c in json_arr) {
+      
       if (json_arr[c] instanceof Object) {
 
           getCode(json_arr[c]);
           continue;
       }
      
+     
      var s = keyWord(json_arr[c]);
      if(s!=''){
-        arr_pp.push(s)
+        arr_pp.push(s);
+        
      }
      
 
   }
-
+  
 }
 
 function keyWord(c){
@@ -353,6 +357,8 @@ function Pretty_Printer(arr){
 }
 if(process.argv[3] == "-p"){
   getCode(code);
+  
+  
   Pretty_Printer(arr_pp);
   console.log("\nPretty Printer:\n");
   console.log(res); 

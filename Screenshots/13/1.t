@@ -1,4 +1,6 @@
- [ [ 'KW_Read(1, 1, 5)', 'WH(" ",1, 5, 6)', 'Var("a",1, 6, 7)' ],
+{ status: true,
+  value: 
+   [ [ 'KW_Read(1, 1, 5)', 'WH(" ",1, 5, 6)', 'Var("a",1, 6, 7)' ],
      'Colon(1, 7, 8)',
      'WH("\n",1, 8, 1)',
      [ 'KW_If(2, 1, 3)',
@@ -67,5 +69,33 @@
              'KW_Fi(4, 85, 87)' ],
            'WH(" ",4, 87, 88)',
            'KW_Fi(4, 88, 90)' ] ],
-       'WH("\n\n\n",4, 90, 1)',
-       'KW_Fi(7, 1, 3)' ] ]
+       'WH("\n\n",4, 90, 1)',
+       'KW_Else(6, 1, 5)',
+       'WH("\n",6, 5, 1)',
+       [ 'KW_Write(7, 1, 6)',
+         'WH(" ",7, 6, 7)',
+         [ 'Bracket("(",7, 7, 8)',
+           [ 'Var("a",7, 8, 9)',
+             'Op("Minus",7, 9, 12)',
+             'Num("1",7, 12, 13)' ],
+           'Bracket(")",7, 13, 14)' ] ],
+       'WH("",8, 1, 1)',
+       'KW_Fi(8, 1, 3)' ] ] }
+
+Pretty Printer:
+
+read a;
+if x == 1 then 
+  y := 10;
+  if x < 100 then 
+    while y > 10 do 
+      y := y - 1 
+    od 
+  else 
+    if ((y == 10) && (x == 5)) then 
+      write 0 
+    fi 
+  fi 
+else 
+  write (a - 1) 
+fi 
