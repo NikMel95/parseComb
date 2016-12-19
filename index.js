@@ -151,17 +151,28 @@ let parseDoWhile = P.lazy(() => {
   return P.seq(pWhile.skip(whitespace), parseJoinedExp.skip(whitespace), pDo.skip(whitespace), parseAll.skip(
     whitespace), pOd)
 })
+let prsDW = P.lazy(() =>{
+  return P.alt(
+P.seq(pWhile.skip(whitespace), parseJoinedExp.skip(whitespace), pDo.skip(whitespace), parseAll.skip(
+    whitespace),pColon.skip(whitespace), pOd),
+    parseDoWhile
+     )
+})
 //parse If Then
 let parseIfThen = P.lazy(() => {
   return P.seq(pIf,whitespace,parseJoinedExp.skip(whitespace), pThen.skip(whitespace),parseAll, whitespace,pFi)
 })
 //parse If Then Else
 let parseIfThenElse = P.lazy(() => {
-  return P.seq(pIf.skip(whitespace),parseJoinedExp.skip(whitespace), pThen.skip(whitespace),parseAll, whitespace,pElse.skip(whitespace),parseAll.skip(whitespace),pFi)
+  return P.seq(pIf.skip(whitespace),parseJoinedExp.skip(whitespace), pThen.skip(whitespace),parseAll.skip(whitespace),pElse.skip(whitespace),parseAll.skip(whitespace),pFi)
+})
+
+let parseIfThenElse1 = P.lazy(() => {
+  return P.seq(pIf.skip(whitespace),parseJoinedExp.skip(whitespace), pThen.skip(whitespace),parseAll.skip(whitespace),pColon.skip(whitespace),pElse.skip(whitespace),parseAll.skip(whitespace),pFi)
 })
 //parse If Then Else Together
 let parseIfThenElseTogether = P.lazy(() => {
-  return P.alt(parseIfThenElse)
+  return P.alt(parseIfThenElse1,parseIfThenElse)
 })
 let parseAssignment = P.seq(indentifier.skip(whitespace),pAssignment.skip(whitespace), parseJoinedExp)
 let parseStatement = P.lazy(() => {
@@ -170,7 +181,7 @@ let parseStatement = P.lazy(() => {
       pSkip,
       parseRead,
       parseWrite,
-      parseDoWhile,
+      prsDW,
       parseAssignment
     )
 })
@@ -178,6 +189,7 @@ let parseStatement = P.lazy(() => {
 let parseAll = P.lazy(() => {
   return P.alt(
       P.seq(pComments.skip(whitespace),parseAll),
+
       P.seq(parseStatement, pColon.skip(whitespace), parseAll),
       P.seq(parseStatement.skip(whitespace))
 
@@ -192,7 +204,7 @@ let source = path.resolve(__dirname, process.argv[2])
 let result = mainParse.parse(fs.readFileSync(source, 'utf8'))
 let rs = util.inspect(result, {depth: null, colors: 'auto'});
 let rs1 = util.inspect(result,{depth:null});
-console.log(rs1)
+console.log(rs)
 
 
 const OPERATORMAP1 = {
@@ -331,10 +343,11 @@ function Pretty_Printer(arr){
       res += "\n" + Ntab(level*2);
     }
     else if(arr[i] == "fi" || arr[i] == "od"  || arr[i] == "else"){
+      
       res += "\n";
       
       level--;
-      res +=  Ntab(level*2) + arr[i] + " ";
+      res +=  Ntab(level*2) + arr[i] + "";
       if(arr[i] == "else"){
         
         level ++;
@@ -345,7 +358,17 @@ function Pretty_Printer(arr){
       res +=  arr[i] + " ";
     }
     else if(arr[i] == ";"){
-      res += arr[i] + "\n" + Ntab(level*2);
+      
+      if(arr[i+1] == "else" || arr[i+1] == "od"){
+        res += arr[i] + "" + Ntab(level*2);  
+        
+      }
+      else{
+        res += arr[i] + "\n" + Ntab(level*2);
+      
+      }
+     
+      
 
     }
     else if(arr[i] == "("){
