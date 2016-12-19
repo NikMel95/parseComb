@@ -1,0 +1,1 @@
+if x == 100 then x := x + 1 else x := x - 1 fi

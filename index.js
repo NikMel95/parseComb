@@ -8,7 +8,7 @@ const util = require('util')
 var OPERATORMAP = [
   
   {type: pref, ops: parseOperatorsExp({Negative: '-'})},
-
+  {type: left, ops: parseOperatorsExp({Assignment: ':='})},
   {type: left, ops: parseOperatorsExp({Eq: '=='})},
   {type: left, ops: parseOperatorsExp({Uneq: '!='})},
   {type: left, ops: parseOperatorsExp({Leq: '<='})},
@@ -22,6 +22,7 @@ var OPERATORMAP = [
   {type: left, ops: parseOperatorsExp({Mod: '%'})},
     {type: left, ops: parseOperatorsExp({Less: '<'})},
   {type: left, ops: parseOperatorsExp({Gr: '>'})},
+
 ];
 
 function whpspace(parserJe) {
@@ -66,9 +67,9 @@ let Bracket = (obj) => {
   
   return `Bracket("${obj.value}",${obj.start.line}, ${obj.start.column}, ${obj.end.column})`
 }
-let WH = (obj) => {
+let Comment = (obj) => {
   
-  return `WH("${obj.value}",${obj.start.line}, ${obj.start.column}, ${obj.end.column})`
+  return `Comment("${obj.value}",${obj.start.line}, ${obj.start.column}, ${obj.end.column})`
 }
 //.mark().map((obj) => Bracket(obj))
 let pIf = P.string('if').mark().map((obj) => keywordLex(obj))
@@ -76,7 +77,7 @@ let pIf = P.string('if').mark().map((obj) => keywordLex(obj))
 let pFi = P.string('fi').mark().map((obj) => keywordLex(obj))
 let pThen = P.string('then').mark().map((obj) => keywordLex(obj))
 let pElse = P.string('else').mark().map((obj) => keywordLex(obj))
-let pSkip = P.string('skip').mark().map((obj) => keywordLex(obj))
+let pSkip = P.string('skip').mark().map((obj) => keywordLex(obj)).skip(P.optWhitespace)
 let pDo = P.string('do').mark().map((obj) => keywordLex(obj))
 let pWhile = P.string('while').mark().map((obj) => keywordLex(obj))
 let pWrite = P.string('write').mark().map((obj) => keywordLex(obj))
@@ -88,8 +89,8 @@ let pAssignment = P.string(':=').mark().map((obj) => Assignment(obj))
 let pLB = P.string("(").mark().map((obj) => Bracket(obj))
 let pRB = P.string(")").mark().map((obj) => Bracket(obj))
 
-let whitespace = P.regexp(/\s*/m).mark().map((obj) => WH(obj))
-//let whitespace = P.regexp(/\s*/m)
+
+let whitespace = P.regexp(/\s*/)
 let indentifier = P.regexp(/(?!read|write|skip|do|while|if|then|else|fi|od)[a-zA-Z_][a-zA-Z0-9_]*/).desc('identifier').mark().map((obj) => Var(obj))
 
 let VarOrNum = P.alt(indentifier, pNum)
@@ -141,25 +142,28 @@ let parseJoinedExp = whpspace(OPERATORMAP_Parser);
  
    
 
-let parseRead = P.seq(pRead, whitespace, indentifier)
-let parseWrite = P.seq(pWrite, whitespace, parseJoinedExp)
+//let pComments = P.seq(P.string("(*").skip(whitespace),P.regexp(/.*/).skip(whitespace),P.string("*)")).mark().map((obj) => Comment(obj))
+let pComments = P.regexp(/\(\*\s(.*)\s\*\)/m).skip(whitespace).mark().map((obj) => Comment(obj))
+
+let parseRead = P.seq(pRead.skip(whitespace), indentifier)
+let parseWrite = P.seq(pWrite.skip(whitespace), parseJoinedExp)
 let parseDoWhile = P.lazy(() => {
-  return P.seq(pWhile, whitespace, parseJoinedExp, whitespace, pDo, whitespace, parseAll,
-    whitespace, pOd)
+  return P.seq(pWhile.skip(whitespace), parseJoinedExp.skip(whitespace), pDo.skip(whitespace), parseAll.skip(
+    whitespace), pOd)
 })
 //parse If Then
 let parseIfThen = P.lazy(() => {
-  return P.seq(pIf,whitespace,parseJoinedExp,whitespace, pThen,whitespace,parseAll, whitespace,pFi)
+  return P.seq(pIf,whitespace,parseJoinedExp.skip(whitespace), pThen.skip(whitespace),parseAll, whitespace,pFi)
 })
 //parse If Then Else
 let parseIfThenElse = P.lazy(() => {
-  return P.seq(pIf,whitespace,parseJoinedExp,whitespace, pThen,whitespace,parseAll, whitespace,pElse,whitespace,parseAll,whitespace,pFi)
+  return P.seq(pIf.skip(whitespace),parseJoinedExp.skip(whitespace), pThen.skip(whitespace),parseAll, whitespace,pElse.skip(whitespace),parseAll.skip(whitespace),pFi)
 })
 //parse If Then Else Together
 let parseIfThenElseTogether = P.lazy(() => {
-  return P.alt(parseIfThen,parseIfThenElse)
+  return P.alt(parseIfThenElse)
 })
-let parseAssignment = P.seq(indentifier, whitespace,pAssignment , whitespace, parseJoinedExp)
+let parseAssignment = P.seq(indentifier.skip(whitespace),pAssignment.skip(whitespace), parseJoinedExp)
 let parseStatement = P.lazy(() => {
   return P.alt(
       parseIfThenElseTogether,
@@ -173,8 +177,10 @@ let parseStatement = P.lazy(() => {
 
 let parseAll = P.lazy(() => {
   return P.alt(
-      P.seq(parseStatement, pColon, whitespace, parseAll),
-      parseStatement
+      P.seq(pComments.skip(whitespace),parseAll),
+      P.seq(parseStatement, pColon.skip(whitespace), parseAll),
+      P.seq(parseStatement.skip(whitespace))
+
     )
 })
 
@@ -186,7 +192,7 @@ let source = path.resolve(__dirname, process.argv[2])
 let result = mainParse.parse(fs.readFileSync(source, 'utf8'))
 let rs = util.inspect(result, {depth: null, colors: 'auto'});
 let rs1 = util.inspect(result,{depth:null});
-console.log(rs)
+console.log(rs1)
 
 
 const OPERATORMAP1 = {
@@ -295,6 +301,10 @@ function keyWord(c){
     var von = c.split("(")[1].split(",")[0]
     von = von.replace(/"/g,'')
     return OPERATORMAP1[von];
+  }
+   else if(c.search(/Comment/i) == 0){
+    var von = c.split("(\"")[1].split('"')[0]
+    return von;
   }
   else{
     return '';
